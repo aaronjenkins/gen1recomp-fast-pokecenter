@@ -21,16 +21,19 @@ Vanilla runs six beats for a heal you were always going to accept:
 "We hope to see you again."                          + a button press
 ```
 
-With the mod, that becomes the greeting, the animation, and you're on your way.
+With the mod, one press on the nurse takes you straight to the heal.
 
 | Kept | Cut |
 |---|---|
-| The greeting, all three time-of-day variants | The prompt preamble |
-| The healing animation, jingle and all | The YES/NO — answered for you |
-| Pokerus notices | "OK, may I see your POKéMON?" |
-| The phone-call registration | "Thank you for waiting." |
-| | "We hope to see you again." |
+| The healing animation, jingle and all | The greeting, all six time-of-day variants |
+| Pokerus notices | The prompt preamble |
+| The phone-call registration | The YES/NO — answered for you |
+| | "OK, may I see your POKéMON?" |
+| | "Thank you for waiting." / "We hope to see you again." |
 | | Button waits left with nothing to read |
+
+`keep_greeting` puts the welcome back if you miss it. The notices past the heal
+are never touched either way.
 
 ## How it works
 
@@ -65,7 +68,7 @@ In-game under **START → MODS → Fast Pokecenter → OPTIONS..**
 |---|---|---|
 | `enabled` | on | master switch |
 | `auto_accept` | on | answer the heal prompt for you; off leaves the choice |
-| `keep_greeting` | on | off makes the counter completely silent |
+| `keep_greeting` | **off** | on restores the time-of-day welcome |
 
 ## Install
 
@@ -100,7 +103,7 @@ Every row of the real nurse script graph was driven through the hook and checked
 against what still reaches the engine:
 
 ```
-2f:40af  run   "Good morning! Welcome to our POKéMON CENTER."
+2f:40af  SKIP  "Good morning! Welcome to our POKéMON CENTER." + its wait
 2f:40f1  SKIP  "We can heal your POKéMON… Shall we heal your POKéMON?"
 2f:40f1  SKIP  yesorno            (auto-answered, scriptVar=1)
 2f:40f1  SKIP  "OK, may I see your POKéMON?"

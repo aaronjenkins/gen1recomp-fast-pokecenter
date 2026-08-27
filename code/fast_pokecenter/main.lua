@@ -34,9 +34,11 @@ return function(mod)
     -- is still cut.
     { key = "auto_accept", type = "toggle", label = "AUTO-ACCEPT HEAL",
       default = true },
-    -- Off: even the greeting goes, for a completely silent counter.
+    -- Default off: one press on the nurse takes you straight to the heal.
+    -- On restores the time-of-day welcome. Either way the notices past the
+    -- heal (Pokerus, phone registration) are untouched.
     { key = "keep_greeting", type = "toggle", label = "KEEP GREETING",
-      default = true },
+      default = false },
   }
 
   -- Resolved once, on the first script command of the session. Rows are keyed
@@ -54,7 +56,7 @@ return function(mod)
     if not (entry and entry.key and scripts) then return end
     nurseKey = entry.key
 
-    local seen, lists, body = {}, {}, nil
+    local seen, lists, body, bodyKey = {}, {}, nil, nil
     local function walk(key)
       if type(key) ~= "string" or seen[key] then return end
       seen[key] = true
@@ -62,12 +64,30 @@ return function(mod)
       if type(list) ~= "table" then return end
       lists[#lists + 1] = list
       for _, row in ipairs(list) do
-        if row.op == "yesorno" then body = list end
+        if row.op == "yesorno" then body, bodyKey = list, key end
         if row.script then walk(row.script) end
       end
     end
     walk(entry.key)
     if not body then return end
+
+    -- Which lists are the GREETING side: those the entry reaches without
+    -- going through the body. The Pokerus notice and the phone-call
+    -- registration sit past the heal, so they are only reachable through it
+    -- and are never treated as greeting -- otherwise turning the greeting off
+    -- would silently swallow them too.
+    local greetingList, gseen = {}, {}
+    local function walkGreeting(key)
+      if type(key) ~= "string" or gseen[key] or key == bodyKey then return end
+      gseen[key] = true
+      local list = scripts[key]
+      if type(list) ~= "table" then return end
+      greetingList[list] = true
+      for _, row in ipairs(list) do
+        if row.script then walkGreeting(row.script) end
+      end
+    end
+    walkGreeting(entry.key)
 
     -- The routine lines, named by the text they write. Matching on the text id
     -- rather than the row catches the copies: the phone-call branch ends with
@@ -89,7 +109,7 @@ return function(mod)
           if routine[row.text] then
             cut = cut + 1
             skipRow[row] = true
-          else
+          elseif greetingList[list] then
             greetingRow[row] = true
           end
         end
@@ -103,9 +123,9 @@ return function(mod)
             skipRow[row] = true
           end
         end
-      elseif texts > 0 then
-        -- A list with surviving lines: its waits belong to the greeting, and
-        -- only go when the greeting does.
+      elseif texts > 0 and greetingList[list] then
+        -- A greeting list's waits go only when its greeting does. A notice
+        -- past the heal keeps both its line and its wait either way.
         for _, row in ipairs(list) do
           if row.op == "waitbutton" or row.op == "promptbutton" then
             greetingButton[row] = true
