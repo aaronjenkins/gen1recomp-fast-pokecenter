@@ -1,6 +1,6 @@
 # gen1recomp-fast-pokecenter
 
-<img src="https://static0.thegamerimages.com/wordpress/wp-content/uploads/2017/09/pokemon-nurse-joy-kanto-region.jpg?q=50&fit=crop&w=825&dpr=1.5" alt="Nurse Joy" width="480">
+<img src="assets/pokecenter.png" alt="A Pokemon Center counter" width="580">
 
 Nurse Joy greets you, heals your team, and lets you go — a Gen 2 mod for
 [Gen1Recomp](https://github.com/bryanthaboi/gen1recomp).
@@ -135,12 +135,6 @@ keep the one-off notices — are the owner's; the Lua and this README were draft
 by the model, and the behaviour above was verified against the running engine
 rather than assumed.
 
-## Credits
-
-The Nurse Joy image is from
-[TheGamer](https://www.thegamer.com) and is used here for illustration. It is
-not covered by this project's licence and is not the author's to relicense.
-
 ## License
 
-[MIT](LICENSE), covering the code. See Credits above for the image.
+[MIT](LICENSE).

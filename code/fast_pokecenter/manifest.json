@@ -1,7 +1,7 @@
 {
   "id": "fast_pokecenter",
   "name": "Fast Pokecenter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nurse Joy greets you, heals your team, and lets you go. Cuts the prompt and the three routine text boxes; keeps the greeting, the healing animation, and one-off notices like Pokerus.",
   "author": "aaron",
   "github": "aaronjenkins/gen1recomp-fast-pokecenter",
@@ -9,5 +9,7 @@
   "api": 2,
   "profile": "content",
   "category": "quality-of-life",
-  "games": ["gen2"]
+  "games": [
+    "gen2"
+  ]
 }

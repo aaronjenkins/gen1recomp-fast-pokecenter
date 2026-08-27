@@ -43,7 +43,7 @@ return function(mod)
   -- by IDENTITY -- the hook is handed the very table the dataset holds -- so
   -- nothing is matched by guessing at opcode order or text ids at runtime.
   local analysed, nurseKey = false, nil
-  local skipRow, autoYesRow, greetingRow = {}, {}, {}
+  local skipRow, autoYesRow, greetingRow, greetingButton = {}, {}, {}, {}
 
   local function analyse(data)
     analysed = true
@@ -103,6 +103,14 @@ return function(mod)
             skipRow[row] = true
           end
         end
+      elseif texts > 0 then
+        -- A list with surviving lines: its waits belong to the greeting, and
+        -- only go when the greeting does.
+        for _, row in ipairs(list) do
+          if row.op == "waitbutton" or row.op == "promptbutton" then
+            greetingButton[row] = true
+          end
+        end
       end
     end
   end
@@ -119,7 +127,15 @@ return function(mod)
         mod.log:error("could not read the nurse script: %s", tostring(err))
       end
     end
-    if not nurseKey or ctx.scriptKey ~= nurseKey then return nextFn() end
+    -- NOT gated on ctx.scriptKey. The nurse object's script is a map-local
+    -- one-liner (`jumpstd`) and `jumpstd` does not change the run's key, so
+    -- ctx.scriptKey is that map's key -- 63:5b28 in Azalea -- never the std
+    -- script's. Gating on it made this mod silently do nothing.
+    --
+    -- Scope comes from the row sets instead: they are built only from lists
+    -- the nurse entry can reach, and the VM is handed the very tables this
+    -- analysis walked (World passes data.gen2Scripts to Vm.new by reference),
+    -- so a row from any other script is simply not in them.
     if not cmd then return nextFn() end
 
     if autoYesRow[cmd] then
@@ -142,9 +158,8 @@ return function(mod)
       return
     end
 
-    if greetingRow[cmd] and not mod.options:get("keep_greeting") then return end
     if not mod.options:get("keep_greeting")
-        and (op == "waitbutton" or op == "promptbutton") then
+        and (greetingRow[cmd] or greetingButton[cmd]) then
       return
     end
 
