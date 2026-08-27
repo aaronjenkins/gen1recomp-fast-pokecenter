@@ -1,7 +1,7 @@
 {
   "id": "fast_pokecenter",
   "name": "Fast Pokecenter",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "One press on Nurse Joy takes you straight to the heal. Cuts the greeting, the prompt and the routine text; keeps the healing animation and one-off notices like Pokerus.",
   "author": "aaron",
   "github": "aaronjenkins/gen1recomp-fast-pokecenter",

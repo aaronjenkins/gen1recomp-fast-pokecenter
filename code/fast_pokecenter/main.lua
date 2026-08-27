@@ -47,13 +47,18 @@ return function(mod)
   local analysed, nurseKey = false, nil
   local skipRow, autoYesRow, greetingRow, greetingButton = {}, {}, {}, {}
 
+  -- Returns true only when it actually found the nurse. The caller latches on
+  -- that, NOT on having tried: the first script command of a session can
+  -- easily arrive before the game or its dataset is resolvable -- more easily
+  -- with other mods loaded, since they run scripts of their own during boot --
+  -- and latching on the attempt left the mod permanently inert for the rest of
+  -- the session with no sign that anything was wrong.
   local function analyse(data)
-    analysed = true
-    if type(data) ~= "table" then return end
+    if type(data) ~= "table" then return false end
     local std = data.gen2StdScripts and data.gen2StdScripts.scripts
     local entry = std and std.PokecenterNurseScript
     local scripts = data.gen2Scripts
-    if not (entry and entry.key and scripts) then return end
+    if not (entry and entry.key and scripts) then return false end
     nurseKey = entry.key
 
     local seen, lists, body, bodyKey = {}, {}, nil, nil
@@ -69,7 +74,7 @@ return function(mod)
       end
     end
     walk(entry.key)
-    if not body then return end
+    if not body then return false end
 
     -- Which lists are the GREETING side: those the entry reaches without
     -- going through the body. The Pokerus notice and the phone-call
@@ -133,6 +138,7 @@ return function(mod)
         end
       end
     end
+    return true
   end
 
   mod.hooks:wrap("script.command", function(nextFn, ctx, op, args, cmd)
@@ -142,9 +148,17 @@ return function(mod)
     if not (ctx and ctx.generation == 2) then return nextFn() end
 
     if not analysed then
-      local ok, err = pcall(analyse, mod.game and mod.game.data)
+      local ok, result = pcall(analyse, mod.game and mod.game.data)
       if not ok then
-        mod.log:error("could not read the nurse script: %s", tostring(err))
+        analysed = true
+        mod.log:error("could not read the nurse script, standing down: %s",
+          tostring(result))
+      elseif result then
+        analysed = true
+        local n = 0
+        for _ in pairs(skipRow) do n = n + 1 end
+        mod.log:info("nurse script found at %s; %d rows to skip",
+          tostring(nurseKey), n)
       end
     end
     -- NOT gated on ctx.scriptKey. The nurse object's script is a map-local
