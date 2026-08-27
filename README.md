@@ -104,6 +104,7 @@ against what still reaches the engine:
 
 ```
 2f:40af  SKIP  "Good morning! Welcome to our POKéMON CENTER." + its wait
+  …     SKIP  the other five greeting variants, likewise with their waits
 2f:40f1  SKIP  "We can heal your POKéMON… Shall we heal your POKéMON?"
 2f:40f1  SKIP  yesorno            (auto-answered, scriptVar=1)
 2f:40f1  SKIP  "OK, may I see your POKéMON?"
@@ -118,8 +119,6 @@ against what still reaches the engine:
 
 ## Known gaps
 
-- **Not played yet.** Verified opcode-by-opcode against the script graph, but no
-  heal has been taken at a real counter.
 - **Gen 1 unsupported**, as above.
 - **Only the nurse.** The PC, the mart clerk and the bench guy are untouched.
 
@@ -133,10 +132,18 @@ against what still reaches the engine:
 ## How this was built
 
 Written with [Claude](https://claude.ai) (Claude Code), directed by the
-repository owner. The design decisions — keep the greeting, keep the animation,
+repository owner. The design decisions — cut the greeting, keep the animation,
 keep the one-off notices — are the owner's; the Lua and this README were drafted
-by the model, and the behaviour above was verified against the running engine
-rather than assumed.
+by the model.
+
+The opcode table above was verified against the running engine rather than
+assumed, and a heal has since been taken at a real counter: no dialogue appears.
+
+Worth recording, because the first release did nothing at all: it gated on
+`ctx.scriptKey` matching the std-script key, which the engine never uses for
+this script — the nurse object runs a map-local `jumpstd` one-liner and that
+does not change the run's key. The test agreed with the bug because it fed the
+hook the same key the code was wrong about.
 
 ## License
 
