@@ -134,6 +134,9 @@ against what still reaches the engine:
 
 - **Gen 1 unsupported**, as above.
 - **Only the nurse.** The PC, the mart clerk and the bench guy are untouched.
+- **Hook order is a dependency.** This mod needs `cmd`, so it must run above any
+  link that forwards fewer arguments. 20000 clears the one known case; a mod
+  registering higher and doing the same would break it again.
 
 ## Development
 
@@ -150,13 +153,23 @@ keep the one-off notices — are the owner's; the Lua and this README were draft
 by the model.
 
 The opcode table above was verified against the running engine rather than
-assumed, and a heal has since been taken at a real counter: no dialogue appears.
+assumed, and heals have since been taken at real counters on two machines —
+including alongside the nuzlocke mod, which is the configuration 0.2.2 fixes.
 
-Worth recording, because the first release did nothing at all: it gated on
-`ctx.scriptKey` matching the std-script key, which the engine never uses for
-this script — the nurse object runs a map-local `jumpstd` one-liner and that
-does not change the run's key. The test agreed with the bug because it fed the
-hook the same key the code was wrong about.
+Two releases shipped inert, and both are worth recording because the same
+mistake produced them: a test that agreed with the bug.
+
+0.1.0 gated on `ctx.scriptKey` matching the std-script key, which the engine
+never uses for this script — the nurse object runs a map-local `jumpstd`
+one-liner, and `jumpstd` does not change the run's key. The test fed the
+hook that same wrong key.
+
+0.2.1 and earlier registered at the default hook priority, below a link that
+calls `next()` with fewer arguments than it received. The row never arrived, so
+nothing was skipped — while the mod still logged a successful analysis. The
+tests exercised the hook in isolation, where no such link exists. Both bugs
+lived in the gap between "the logic is right" and "the engine actually reaches
+it with what it needs".
 
 ## License
 
