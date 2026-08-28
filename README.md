@@ -60,6 +60,19 @@ Two details that are less obvious than they look:
   slow. A list whose every line is cut loses its waits as well; the Pokerus
   notice keeps its text, so it keeps its wait.
 
+### Hook priority
+
+The hook registers at priority **20000**, which is load-bearing. `Hooks:call`
+sorts links by priority descending, and a link that calls `next(...)` *with
+arguments* replaces the argument list for everything downstream. The nuzlocke
+mod's heal gate registers at 10000 and ends with `return next(ctx, name, args)`
+— three arguments, dropping the fourth, `cmd`.
+
+The engine's own vanilla link survives that (`local row = hcmd or cmd` falls
+back to its closure), but this mod matches rows by identity, so a nil `cmd` made
+it skip nothing while still reporting a successful analysis — working alone,
+silently inert alongside nuzlocke. Running above that link keeps the row intact.
+
 ## Options
 
 In-game under **START → MODS → Fast Pokecenter → OPTIONS..**

@@ -141,6 +141,25 @@ return function(mod)
     return true
   end
 
+  -- Priority 20000, and it matters.
+  --
+  -- Hooks:call sorts links by priority DESC, and a link that calls
+  -- next(...) with arguments REPLACES the argument list for everything
+  -- downstream (src/mods/Hooks.lua). The nuzlocke mod's heal gate registers at
+  -- priority 10000 and ends with `return next(ctx, name, args)` -- three
+  -- arguments, dropping the fourth, `cmd`. Everything below it therefore
+  -- receives cmd = nil.
+  --
+  -- The engine's own vanilla link survives that (`local row = hcmd or cmd`
+  -- falls back to its closure), but this mod matches rows by identity, so a
+  -- nil cmd made it skip nothing at all while still reporting a successful
+  -- analysis. Running ABOVE that link keeps the row intact.
+  --
+  -- 20000 sits above the heal gate and below nuzlocke's gym-team gate (95000),
+  -- which passes all four arguments through correctly. Nothing this mod skips
+  -- -- greeting text, the yesorno, closing lines, orphaned button waits -- is
+  -- something the heal gate inspects; it looks at old_man_demo, fade and
+  -- heal_party, none of which this mod touches.
   mod.hooks:wrap("script.command", function(nextFn, ctx, op, args, cmd)
     if not mod.options:get("enabled") then return nextFn() end
     -- Gen 1 runs its Pokemon Center in engine code rather than as a script,
@@ -198,7 +217,7 @@ return function(mod)
     end
 
     return nextFn()
-  end)
+  end, 20000)
 
   mod.log:info("fast_pokecenter ready")
 end
